@@ -4,9 +4,11 @@ a demo of egg.js api（include restful api）
 
 ### 本地调试
 
+```
 $ npm i
 $ npm run dev
 $ open http://localhost:7001/
+```
 
 ### todo
 
