@@ -4,7 +4,7 @@ const base64 = require('base-64');
 class InviteCodeService extends Service {
   async getCode(code) {
     const condition = { code: code };
-    const codeItem = await this.ctx.model.InviteCode.findOneAndRemove(condition);
+    const codeItem = await this.ctx.model.InviteCode.findOne(condition);
     if(codeItem) {
       this.ctx.throw(404, '邀请码已经被使用！');
     }
@@ -28,7 +28,6 @@ class InviteCodeService extends Service {
     const decode = base64.decode(code);
     if(decode >= ctx.app.config._local.inviteMin && decode <= ctx.app.config._local.inviteMax) {
       await this.getCode(code);
-      await this.writeCode(code);
     } else {
       ctx.throw(404, '邀请码错误！');
     }

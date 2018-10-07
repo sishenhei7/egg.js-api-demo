@@ -124,6 +124,8 @@ class UserController extends Controller {
         await service.inviteCode.verifyCode(params.code);
         //创建一个用户(这里需要加上token)
         const res = await service.user.createOneUser(params.mobile, params.password, params.nickname);
+        //写入邀请码
+        await service.inviteCode.writeCode(params.code);
         const token = ctx.helper.generateJWT(params.mobile);
         //生成管理员token
         let adminToken = null;

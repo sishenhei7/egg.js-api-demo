@@ -16,6 +16,8 @@ module.exports = () => {
         const code = err.code == null ? -1 : err.code;
         ctx.body = { code, error };
         if (status === 422) {
+          //参数校验失败则code返回-2
+          ctx.body.code = -2;
           ctx.body.detail = err.errors;
         }
         ctx.status = status;
