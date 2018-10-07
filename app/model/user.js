@@ -12,9 +12,21 @@ module.exports = app => {
             type: String,
             required: true
         },
+        nickname: {
+            type: String,
+            default: 'default'
+        },
         createAt: {
             type: Date,
             default: Date.now
+        },
+        authority: {
+            type: String,
+            default: 'user'
+        },
+        postTimes: {
+            type: Number,
+            default: 3
         }
     });
 

@@ -1,5 +1,4 @@
 const Service = require('egg').Service;
-const base64 = require('base-64');
 
 class ArticleService extends Service {
     // api==========================================

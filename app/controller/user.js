@@ -1,6 +1,6 @@
 const Controller = require('egg').Controller;
 
-const mobileAndPasswordRule = {
+const rules = {
     mobile: {
         type: 'string',
         required: true,
@@ -11,17 +11,8 @@ const mobileAndPasswordRule = {
         type: 'string',
         required: true,
         allowEmpty: false
-    }
-};
-
-const mobileAndPasswordAndTokenRule = {
-    mobile: {
-        type: 'string',
-        required: true,
-        allowEmpty: false,
-        format: /^[0-9]{11}$/
     },
-    password: {
+    nickname: {
         type: 'string',
         required: true,
         allowEmpty: false
@@ -30,16 +21,61 @@ const mobileAndPasswordAndTokenRule = {
         type: 'string',
         required: true,
         allowEmpty: false
+    },
+    code: {
+        type: 'string',
+        required: true,
+        allowEmpty: false
     }
 };
 
+const signUpRule = {
+    mobile: rules.mobile,
+    password: rules.password,
+    nickname: rules.nickname,
+    code: rules.code
+};
+
+const loginRule = {
+    mobile: rules.mobile,
+    password: rules.password
+};
+
+const verifyLoginRule = {
+    mobile: rules.mobile,
+    token: rules.token
+};
+
+const indexRule = {
+    mobile: rules.mobile,
+    superAdminToken: rules.token
+}
+
+const deleteUserRule = {
+    mobile: rules.mobile,
+    superAdminToken: rules.token
+}
+
+const hoistRule = {
+    token: rules.token,
+    superAdminMobile: rules.mobile,
+    userMobile: rules.mobile
+};
+
+const changePswRule = {
+    mobile: rules.mobile,
+    password: rules.password,
+    token: rules.token
+};
+
+const changeNicknameRule = {
+    mobile: rules.mobile,
+    token: rules.token,
+    nickname: rules.nickname
+};
+
 const mobileRule = {
-    mobile: {
-        type: 'string',
-        required: true,
-        allowEmpty: false,
-        format: /^[0-9]{11}$/
-    }
+    mobile: rules.mobile
 };
 
 class UserController extends Controller {
@@ -50,8 +86,16 @@ class UserController extends Controller {
         ctx.helper.success({ ctx, msg });
     }
 
+    //超级管理员权限
     async index() {
         const { ctx, service } = this;
+        //校验参数
+        ctx.validate(indexRule);
+        //组装参数
+        const params = ctx.request.body;
+        //校验token
+        ctx.helper.verifyJWT(params.superAdminToken, params.mobile, 'superAdmin');
+        //设置响应
         const res = await service.user.findAllUsers();
         const msg = '查找所有用户成功！';
         ctx.helper.success({ ctx, res, msg });
@@ -59,10 +103,12 @@ class UserController extends Controller {
 
     async verifyLogin() {
         const { ctx } = this;
+        //校验参数
+        ctx.validate(verifyLoginRule);
         //组装参数
-        const token = ctx.request.body.token;
+        const params = ctx.request.body;
         //校验token
-        ctx.helper.verifyJWT(token);
+        ctx.helper.verifyJWT(params.token, params.mobile);
         //设置响应
         const msg = '登陆成功！';
         ctx.helper.success({ ctx, msg });
@@ -71,21 +117,32 @@ class UserController extends Controller {
     async signUp() {
         const { ctx, service } = this;
         //校验参数
-        ctx.validate(mobileAndPasswordRule);
+        ctx.validate(signUpRule);
         //组装参数
         const params = ctx.request.body;
+        //验证邀请码
+        await service.inviteCode.verifyCode(params.code);
         //创建一个用户(这里需要加上token)
-        const res = await service.user.createOneUser(params.mobile, params.password);
+        const res = await service.user.createOneUser(params.mobile, params.password, params.nickname);
         const token = ctx.helper.generateJWT(params.mobile);
+        //生成管理员token
+        let adminToken = null;
+        let superAdminToken = null;
+        const verifyAuthority = await service.user.getAuthority(params.mobile);
+        if(verifyAuthority == 'admin') {
+            adminToken = ctx.helper.generateAdminJWT(params.mobile);
+        } else if(verifyAuthority == 'superAdmin') {
+            superAdminToken = ctx.helper.generateSuperAdminJWT(params.mobile);
+        }
         //设置响应
         const msg = '注册成功！';
-        ctx.helper.success({ ctx, res, token, msg });
+        ctx.helper.success({ ctx, token, adminToken, superAdminToken, msg });
     }
 
     async login() {
         const { ctx, service } = this;
         //校验参数
-        ctx.validate(mobileAndPasswordRule);
+        ctx.validate(loginRule);
         //组装参数
         const params = ctx.request.body;
         //查找password并比较
@@ -96,37 +153,76 @@ class UserController extends Controller {
             ctx.throw(404, '密码错误！');
         }
         //设置响应
+        const token = ctx.helper.generateSuperAdminJWT(params.mobile);
+        //生成管理员token
+        let adminToken = null;
+        let superAdminToken = null;
+        const verifyAuthority = await service.user.getAuthority(params.mobile);
+        if(verifyAuthority == 'admin') {
+            adminToken = ctx.helper.generateAdminJWT(params.mobile);
+        } else if(verifyAuthority == 'superAdmin') {
+            superAdminToken = ctx.helper.generateSuperAdminJWT(params.mobile);
+        }
         const msg = '登录成功！';
-        const token = ctx.helper.generateJWT(params.mobile);
-        ctx.helper.success({ ctx, res, token, msg });
+        ctx.helper.success({ ctx, token, adminToken, superAdminToken, msg });
     }
 
     async changePassword() {
         const { ctx, service } = this;
         //校验参数
-        ctx.validate(mobileAndPasswordAndTokenRule);
+        ctx.validate(changePswRule);
         //组装参数
         const params = ctx.request.body;
         //校验token
-        ctx.helper.verifyJWT(params.token);
+        ctx.helper.verifyJWT(params.token, params.mobile);
         //设置响应
-        const res = await service.user.updateOneUser(params.mobile, params.password);
+        const res = await service.user.updatePassword(params.mobile, params.password);
         const msg = '密码修改成功！';
-        ctx.helper.success({ ctx, res, msg });
+        ctx.helper.success({ ctx, msg });
     }
 
+    async changeNickname() {
+        const { ctx, service } = this;
+        //校验参数
+        ctx.validate(changeNicknameRule);
+        //组装参数
+        const params = ctx.request.body;
+        //校验token
+        ctx.helper.verifyJWT(params.token, params.mobile);
+        //设置响应
+        const res = await service.user.updateNickname(params.mobile, params.nickname);
+        const msg = '昵称修改成功！';
+        ctx.helper.success({ ctx, msg });
+    }
+
+    //超级管理员权限
     async deleteUser() {
         const { ctx, service } = this;
         //校验参数
-        ctx.validate(mobileAndPasswordAndTokenRule);
+        ctx.validate(deleteUserRule);
         //组装参数
         const params = ctx.request.body;
         //校验token
-        ctx.helper.verifyJWT(params.token);
+        ctx.helper.verifyJWT(params.superAdminToken, params.mobile, 'superAdmin');
         //设置响应
-        const res = await service.user.deleteOneUser(params.mobile, params.password);
+        const res = await service.user.deleteOneUser(params.mobile);
         const msg = '用户删除成功！';
-        ctx.helper.success({ ctx, res, msg });
+        ctx.helper.success({ ctx, msg });
+    }
+
+    //超级管理员权限
+    async hoistToAdmin() {
+        const { ctx, service } = this;
+        //校验参数
+        ctx.validate(hoistRule);
+        //组装参数
+        const params = ctx.request.body;
+        //校验token
+        ctx.helper.verifyJWT(params.token, params.superAdminMobile, 'superAdmin');
+        //设置响应
+        const res = await service.user.hoistToAdmin(params.userMobile);
+        const msg = '提升至管理员成功！';
+        ctx.helper.success({ ctx, msg });
     }
 
 }

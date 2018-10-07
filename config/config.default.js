@@ -54,7 +54,18 @@ module.exports = appInfo => {
     secret: 'Yang-secret',
     enable: true, // default is false
     match: '/jwt', // optional
-  }
+  };
 
-  return config
+  config._local = {
+    mobile: '13610161234', //超级管理员账号
+    password: 'admin.', //超级管理员密码
+    superAdminJwt: 'secret-super-admin', //超级管理员的jwt密钥
+    adminMobile: [13600000001, 13600000002, 13600000003, 13600000004, 13600000005], //管理员账号，密码和账号相同
+    adminJwt: 'secret-admin', //管理员的jwt密钥
+    inviteMin: 100000, //邀请码最小值
+    inviteMax: 999999, //邀请码最大值
+  };
+
+  return config;
+
 }

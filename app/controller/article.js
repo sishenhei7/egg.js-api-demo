@@ -1,6 +1,72 @@
 const Controller = require('egg').Controller;
 
-const searchAndPageRule = {
+const rules = {
+    mobile: {
+        type: 'string',
+        required: true,
+        allowEmpty: false,
+        format: /^[0-9]{11}$/
+    },
+    token: {
+        type: 'string',
+        required: true,
+        allowEmpty: false
+    },
+    superAdminToken: {
+        type: 'string',
+        required: false,
+        allowEmpty: false
+    },
+    title: {
+        type: 'string',
+        required: true,
+        allowEmpty: false
+    },
+    titleWeak: {
+        type: 'string',
+        required: false,
+        allowEmpty: false
+    },
+    author: {
+        type: 'string',
+        required: true,
+        allowEmpty: false
+    },
+    authorWeak: {
+        type: 'string',
+        required: false,
+        allowEmpty: false
+    },
+    tag: {
+        type: 'string',
+        required: true,
+        allowEmpty: false
+    },
+    tagWeak: {
+        type: 'string',
+        required: false,
+        allowEmpty: false
+    },
+    summary: {
+        type: 'string',
+        required: true,
+        allowEmpty: false
+    },
+    summaryWeak: {
+        type: 'string',
+        required: false,
+        allowEmpty: false
+    },
+    content: {
+        type: 'string',
+        required: true,
+        allowEmpty: false
+    },
+    contentWeak: {
+        type: 'string',
+        required: false,
+        allowEmpty: false
+    },
     search: {
         type: 'string',
         required: false,
@@ -18,61 +84,37 @@ const searchAndPageRule = {
     }
 };
 
+const searchAndPageRule = {
+    search: rules.search,
+    page: rules.page,
+    pageSize: rules.pageSize
+};
+
 const articleRule = {
-    title: {
-        type: 'string',
-        required: true,
-        allowEmpty: false
-    },
-    author: {
-        type: 'string',
-        required: false,
-        allowEmpty: false
-    },
-    tag: {
-        type: 'string',
-        required: true,
-        allowEmpty: false
-    },
-    summary: {
-        type: 'string',
-        required: true,
-        allowEmpty: false
-    },
-    content: {
-        type: 'string',
-        required: true,
-        allowEmpty: false
-    }
+    mobile: rules.mobile,
+    token: rules.token,
+    title: rules.title,
+    tag: rules.tag,
+    summary: rules.summary,
+    content: rules.content
 };
 
 const articleUpdateRule = {
-    title: {
-        type: 'string',
-        required: false,
-        allowEmpty: false
-    },
-    author: {
-        type: 'string',
-        required: false,
-        allowEmpty: false
-    },
-    tag: {
-        type: 'string',
-        required: false,
-        allowEmpty: false
-    },
-    summary: {
-        type: 'string',
-        required: false,
-        allowEmpty: false
-    },
-    content: {
-        type: 'string',
-        required: false,
-        allowEmpty: false
-    }
+    mobile: rules.mobile,
+    token: rules.token,
+    superAdminToken: rules.superAdminToken,
+    title: rules.titleWeak,
+    author: rules.authorWeak,
+    tag: rules.tagWeak,
+    summary: rules.summaryWeak,
+    content: rules.contentWeak
 };
+
+const articleDestroyRule = {
+    mobile: rules.mobile,
+    token: rules.token,
+    superAdminToken: rules.superAdminToken
+}
 
 class ArticleController extends Controller {
     // api===============================================
@@ -82,6 +124,7 @@ class ArticleController extends Controller {
         ctx.helper.success({ ctx, msg });
     }
 
+    //展示不需要token验证
     async index() {
         const { ctx, service } = this;
         //校验参数
@@ -94,18 +137,25 @@ class ArticleController extends Controller {
         ctx.helper.success({ ctx, res, msg });
     }
 
+    //新建需要token验证
     async create() {
         const { ctx, service } = this;
         //校验参数
         ctx.validate(articleRule);
         //组装参数
-        const params = ctx.request.body;
+        let params = ctx.request.body;
+        //添加author
+        const user = await service.user.findOneUser(params.mobile);
+        params.author = user.nickname;
+        //校验token
+        ctx.helper.verifyJWT(params.token, params.mobile);
         const res = await service.article.createOneArticle(params);
         //设置响应
         const msg = '创建文章成功！';
-        ctx.helper.success({ ctx, res, msg });
+        ctx.helper.success({ ctx, msg });
     }
 
+    //单个展示也不需要token验证
     async show() {
         const { ctx, service } = this;
         //组装参数
@@ -116,6 +166,7 @@ class ArticleController extends Controller {
         ctx.helper.success({ ctx, res, msg });
     }
 
+    //修改需要验证token和昵称
     async update() {
         const { ctx, service } = this;
         //校验参数
@@ -123,22 +174,52 @@ class ArticleController extends Controller {
         //组装参数
         const { id } = ctx.params;
         const params = ctx.request.body;
+        //校验token
+        ctx.helper.verifyJWT(params.token, params.mobile);
+        //校验昵称
+        await this.verifyNickname(params.superAdminToken, params.mobile, id);
         const res = await service.article.updateOneArticle(id, params);
         //设置响应
         const msg = '修改文章成功！';
-        ctx.helper.success({ ctx, res, msg });
+        ctx.helper.success({ ctx, msg });
     }
 
+    //删除需要验证token和昵称
     async destroy() {
         const { ctx, service } = this;
+        //校验参数
+        ctx.validate(articleDestroyRule);
         //组装参数
         const { id } = ctx.params;
+        const params = ctx.request.body;
+        //校验token
+        ctx.helper.verifyJWT(params.token, params.mobile);
+        //校验昵称
+        await this.verifyNickname(params.superAdminToken, params.mobile, id);
         const res = await service.article.deleteOneArticle(id);
         //设置响应
         const msg = '删除文章成功！';
-        ctx.helper.success({ ctx, res, msg });
+        ctx.helper.success({ ctx, msg });
     }
 
+    // common===============================================
+    // 校验昵称，超级管理员无视
+    async verifyNickname(superAdminToken, mobile, id) {
+        const { ctx, service } = this;
+        let isSuperAdmin = false;
+        let user = 'null';
+        let article = null;
+        if(superAdminToken) {
+            isSuperAdmin = ctx.helper.verifyJWT(superAdminToken, mobile, 'superAdmin');
+        }
+        if(!isSuperAdmin) {
+            user = await service.user.findOneUser(mobile);
+            article = await service.article.findOneArticle(id);
+            if(user.nickname != article.author) {
+                ctx.throw(404, '这篇文章不是您写的，您没有权限修改！');
+            }
+        }
+    }
 }
 
 module.exports = ArticleController;
