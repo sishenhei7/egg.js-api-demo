@@ -30,3 +30,10 @@ exports.cors = {
     enable: true,
     package: 'egg-cors',
 };
+
+//使用react
+exports.react = {
+    enable: true,
+    package: 'egg-view-react',
+};
+

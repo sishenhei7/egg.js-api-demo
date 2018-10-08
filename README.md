@@ -48,7 +48,7 @@ config._local = {
 - [x] 邀请码系统
 - [x] 画一个高大上的数据库图
 - [x] 写一个高大上的api文档
-- [ ] 后台react页面
+- [ ] [后台react页面](https://github.com/sishenhei7/react-management-system-for-egg.js)
 
 ### 数据库
 

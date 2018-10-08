@@ -56,6 +56,15 @@ module.exports = appInfo => {
     match: '/jwt', // optional
   };
 
+  //模板设置
+  config.view = {
+    mapping: {
+      '.js': 'react',
+      '.jsx': 'react',
+    }
+  };
+
+  //个人设置
   config._local = {
     mobile: '13610161234', //超级管理员账号
     password: 'admin.', //超级管理员密码
