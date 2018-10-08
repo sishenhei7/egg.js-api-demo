@@ -1,6 +1,7 @@
 # egg api demo
 
 a demo of egg.js api, using JWT, genHash, restful api。
+加入了权限系统和邀请码系统。
 
 ### 本地调试
 
@@ -55,7 +56,7 @@ config._local = {
 
 ### api
 
-[api文档](https://sishenhei7.github.io/egg.js-api-demo-/api/api_docs)
+[api文档](https://sishenhei7.github.io/egg.js-api-demo/api/api_docs)
 
 
 
