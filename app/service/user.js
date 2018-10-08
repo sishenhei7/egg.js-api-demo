@@ -63,6 +63,7 @@ class UserService extends Service {
         if(!hasMobile) {
             ctx.throw(404, '没有找到用户！');
         }
+        password = await ctx.genHash(password);
         return this._updatePassword(mobile, password);
     }
 

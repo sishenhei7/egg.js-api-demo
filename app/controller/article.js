@@ -15,7 +15,7 @@ const rules = {
     superAdminToken: {
         type: 'string',
         required: false,
-        allowEmpty: false
+        allowEmpty: true
     },
     title: {
         type: 'string',
@@ -104,7 +104,6 @@ const articleUpdateRule = {
     token: rules.token,
     superAdminToken: rules.superAdminToken,
     title: rules.titleWeak,
-    author: rules.authorWeak,
     tag: rules.tagWeak,
     summary: rules.summaryWeak,
     content: rules.contentWeak

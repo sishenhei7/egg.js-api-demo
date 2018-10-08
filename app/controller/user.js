@@ -24,7 +24,7 @@ const rules = {
     },
     code: {
         type: 'string',
-        required: true,
+        required: false,
         allowEmpty: false
     }
 };
@@ -53,13 +53,15 @@ const indexRule = {
 
 const deleteUserRule = {
     mobile: rules.mobile,
+    userMobile: rules.mobile,
     superAdminToken: rules.token
 }
 
 const hoistRule = {
-    token: rules.token,
-    superAdminMobile: rules.mobile,
-    userMobile: rules.mobile
+    mobile: rules.mobile,
+    userMobile: rules.mobile,
+    superAdminToken: rules.token
+
 };
 
 const changePswRule = {
@@ -121,11 +123,19 @@ class UserController extends Controller {
         //组装参数
         const params = ctx.request.body;
         //验证邀请码
-        await service.inviteCode.verifyCode(params.code);
+        if(!ctx.app.config._local.disableInviteCode) {
+            if(!params.code) {
+                ctx.throw(404, '请输入邀请码！');
+            } else {
+                await service.inviteCode.verifyCode(params.code);
+            }
+        }
         //创建一个用户(这里需要加上token)
         const res = await service.user.createOneUser(params.mobile, params.password, params.nickname);
         //写入邀请码
-        await service.inviteCode.writeCode(params.code);
+        if(!ctx.app.config._local.disableInviteCode) {
+            await service.inviteCode.writeCode(params.code);
+        }
         const token = ctx.helper.generateJWT(params.mobile);
         //生成管理员token
         let adminToken = null;
@@ -207,7 +217,7 @@ class UserController extends Controller {
         //校验token
         ctx.helper.verifyJWT(params.superAdminToken, params.mobile, 'superAdmin');
         //设置响应
-        const res = await service.user.deleteOneUser(params.mobile);
+        const res = await service.user.deleteOneUser(params.userMobile);
         const msg = '用户删除成功！';
         ctx.helper.success({ ctx, msg });
     }
@@ -220,7 +230,7 @@ class UserController extends Controller {
         //组装参数
         const params = ctx.request.body;
         //校验token
-        ctx.helper.verifyJWT(params.token, params.superAdminMobile, 'superAdmin');
+        ctx.helper.verifyJWT(params.superAdminToken, params.mobile, 'superAdmin');
         //设置响应
         const res = await service.user.hoistToAdmin(params.userMobile);
         const msg = '提升至管理员成功！';

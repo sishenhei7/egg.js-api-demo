@@ -24,9 +24,9 @@ class InviteCodeService extends Service {
 
   async verifyCode(code) {
     const { ctx } = this;
-    code = ctx.helper.decodeStr(code);
-    const decode = base64.decode(code);
-    if(decode >= ctx.app.config._local.inviteMin && decode <= ctx.app.config._local.inviteMax) {
+    const decodedCode = ctx.helper.decodeStr(code);
+    const base64Code = base64.decode(decodedCode);
+    if(base64Code >= ctx.app.config._local.inviteMin && base64Code <= ctx.app.config._local.inviteMax) {
       await this.getCode(code);
     } else {
       ctx.throw(404, '邀请码错误！');

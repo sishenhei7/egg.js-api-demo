@@ -62,6 +62,7 @@ module.exports = appInfo => {
     superAdminJwt: 'secret-super-admin', //超级管理员的jwt密钥
     adminMobile: [13600000001, 13600000002, 13600000003, 13600000004, 13600000005], //管理员账号，密码和账号相同
     adminJwt: 'secret-admin', //管理员的jwt密钥
+    disableInviteCode: true, //是否关闭邀请码注册
     inviteMin: 100000, //邀请码最小值
     inviteMax: 999999, //邀请码最大值
   };
