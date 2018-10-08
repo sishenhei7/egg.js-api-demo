@@ -22,7 +22,7 @@ $ open http://localhost:7001/
 
 ### api
 
-[api文档](./api/api_docs.html)
+[api文档](https://sishenhei7.github.io/egg.js-api-demo-/api/api_docs)
 
 
 
