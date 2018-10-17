@@ -18,7 +18,7 @@ module.exports = appInfo => {
     csrf: {
       enable: false
     },
-    domainWhiteList: [ 'http://localhost:8000' ]
+    domainWhiteList: [ 'http://localhost:8000', 'http://localhost:3000' ]
   };
 
   //设置cors

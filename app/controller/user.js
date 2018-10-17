@@ -165,7 +165,7 @@ class UserController extends Controller {
             ctx.throw(404, '密码错误！');
         }
         //设置响应
-        const token = ctx.helper.generateSuperAdminJWT(params.mobile);
+        const token = ctx.helper.generateJWT(params.mobile);
         //生成管理员token
         let adminToken = null;
         let superAdminToken = null;
