@@ -110,14 +110,14 @@ class ArticleService extends Service {
 
     async _findAllByAuthor(author) {
         const condition = { author };
-        const sortCondition = { createdAt: -1 };
+        const sortCondition = { _id: -1 };
         return this.ctx.model.Article.find(condition).sort(sortCondition);
     }
 
     //模糊查询(仅限标题)
     async _fuzzySearch(search) {
         const condition = { title: { $regex: search, $options: 'i' } };
-        const sortCondition = { createdAt: -1 };
+        const sortCondition = { _id: -1 };
         const res = await this.ctx.model.Article.find(condition).sort(sortCondition);
         return res;
     }
@@ -127,7 +127,7 @@ class ArticleService extends Service {
             title: { $regex: search, $options: 'i' },
             author
             };
-        const sortCondition = { createdAt: -1 };
+        const sortCondition = { _id: -1 };
         const res = await this.ctx.model.Article.find(condition).sort(sortCondition);
         return res;
     }
@@ -137,7 +137,7 @@ class ArticleService extends Service {
         page = Number(page);
         pageSize = Number(pageSize);
         const skip = (page - 1) * pageSize;
-        const sortCondition = { createdAt: -1 };
+        const sortCondition = { _id: -1 };
         const res = await this.ctx.model.Article.find().skip(skip).limit(pageSize).sort(sortCondition);
         return res;
     }
@@ -147,7 +147,7 @@ class ArticleService extends Service {
         pageSize = Number(pageSize);
         const condition = { author };
         const skip = (page - 1) * pageSize;
-        const sortCondition = { createdAt: -1 };
+        const sortCondition = { _id: -1 };
         const res = await this.ctx.model.Article.find(condition).skip(skip).limit(pageSize).sort(sortCondition);
         return res;
     }
