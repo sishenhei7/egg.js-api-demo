@@ -104,16 +104,19 @@ class UserController extends Controller {
     }
 
     async verifyLogin() {
-        const { ctx } = this;
+        const { ctx, service } = this;
         //校验参数
         ctx.validate(verifyLoginRule);
         //组装参数
         const params = ctx.request.body;
         //校验token
         ctx.helper.verifyJWT(params.token, params.mobile);
+        //返回用户信息
+        const res = await service.user.findOneUser(params.mobile);
+        const nickname = res.nickname;
         //设置响应
         const msg = '登陆成功！';
-        ctx.helper.success({ ctx, msg });
+        ctx.helper.success({ ctx, nickname, msg });
     }
 
     async signUp() {
@@ -166,6 +169,7 @@ class UserController extends Controller {
         }
         //设置响应
         const token = ctx.helper.generateJWT(params.mobile);
+        const nickname = res.nickname;
         //生成管理员token
         let adminToken = null;
         let superAdminToken = null;
@@ -176,7 +180,7 @@ class UserController extends Controller {
             superAdminToken = ctx.helper.generateSuperAdminJWT(params.mobile);
         }
         const msg = '登录成功！';
-        ctx.helper.success({ ctx, token, adminToken, superAdminToken, msg });
+        ctx.helper.success({ ctx, token, nickname, adminToken, superAdminToken, msg });
     }
 
     async changePassword() {

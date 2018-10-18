@@ -55,11 +55,12 @@ module.exports = {
     }
   },
 
-  success({ ctx, res = null, token = null, adminToken = null, superAdminToken = null, msg = '请求成功'}) {
+  success({ ctx, nickname = null, res = null, token = null, adminToken = null, superAdminToken = null, msg = '请求成功'}) {
     ctx.body = {
       code: 0,
       data: res,
       token: token,
+      nickname: nickname,
       adminToken: adminToken,
       superAdminToken: superAdminToken,
       msg
