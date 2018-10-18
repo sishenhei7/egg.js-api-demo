@@ -4,16 +4,28 @@ class ArticleService extends Service {
     // api==========================================
     async findAllArticles(params) {
         const { ctx } = this;
-        const { search, page, pageSize } = params;
+        const { author, search, page, pageSize } = params;
         let articles = [];
-        if(page) {
-            if(search) {
-                articles = await this._fuzzySearch(search);
+        if(author) {
+            if(page) {
+                if(search) {
+                    articles = await this._fuzzySearchByAuthor(search, author);
+                } else {
+                    articles = await this._pagedSearchByAuthor(page, pageSize, author);
+                }
             } else {
-                articles = await this._pagedSearch(page, pageSize);
+                articles = await this._findAllByAuthor(author);
             }
         } else {
-            articles = await this._findAll();
+            if(page) {
+                if(search) {
+                    articles = await this._fuzzySearch(search);
+                } else {
+                    articles = await this._pagedSearch(page, pageSize);
+                }
+            } else {
+                articles = await this._findAll();
+            }
         }
         if(!articles) {
             ctx.throw(404, '找不到文章！');
@@ -96,6 +108,12 @@ class ArticleService extends Service {
         return this.ctx.model.Article.find();
     }
 
+    async _findAllByAuthor(author) {
+        const condition = { author };
+        const sortCondition = { createdAt: -1 };
+        return this.ctx.model.Article.find(condition).sort(sortCondition);
+    }
+
     //模糊查询(仅限标题)
     async _fuzzySearch(search) {
         const condition = { title: { $regex: search, $options: 'i' } };
@@ -104,11 +122,33 @@ class ArticleService extends Service {
         return res;
     }
 
+    async _fuzzySearchByAuthor(search, author) {
+        const condition = {
+            title: { $regex: search, $options: 'i' },
+            author
+            };
+        const sortCondition = { createdAt: -1 };
+        const res = await this.ctx.model.Article.find(condition).sort(sortCondition);
+        return res;
+    }
+
     //分页查询
     async _pagedSearch(page = 1, pageSize = 10) {
+        page = Number(page);
+        pageSize = Number(pageSize);
         const skip = (page - 1) * pageSize;
         const sortCondition = { createdAt: -1 };
         const res = await this.ctx.model.Article.find().skip(skip).limit(pageSize).sort(sortCondition);
+        return res;
+    }
+
+    async _pagedSearchByAuthor(page = 1, pageSize = 10, author) {
+        page = Number(page);
+        pageSize = Number(pageSize);
+        const condition = { author };
+        const skip = (page - 1) * pageSize;
+        const sortCondition = { createdAt: -1 };
+        const res = await this.ctx.model.Article.find(condition).skip(skip).limit(pageSize).sort(sortCondition);
         return res;
     }
 }

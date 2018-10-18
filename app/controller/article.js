@@ -129,8 +129,8 @@ class ArticleController extends Controller {
         //校验参数
         ctx.validate(searchAndPageRule);
         //组装参数（模糊、分页查询）
-        const params = ctx.request.body;
-        const res = await service.article.findAllArticles(params);
+        const query = ctx.query;
+        const res = await service.article.findAllArticles(query);
         //设置响应
         const msg = '查找文章成功！';
         ctx.helper.success({ ctx, res, msg });
