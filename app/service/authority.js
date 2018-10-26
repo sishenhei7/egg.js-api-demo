@@ -6,7 +6,9 @@ class AuthorityService extends Service {
     const condition = { mobile: mobile };
     const user = await ctx.model.User.findOne(condition);
     if(!user) {
-      ctx.throw(404, '权限查找出错！');
+      ctx.helper.response(ctx, 1, '没有权限！');
+      return;
+      // ctx.throw(404, '权限查找出错！');
     }
     return user.authority;
   }

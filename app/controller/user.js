@@ -128,7 +128,9 @@ class UserController extends Controller {
         //验证邀请码
         if(!ctx.app.config._local.disableInviteCode) {
             if(!params.code) {
-                ctx.throw(404, '请输入邀请码！');
+                ctx.helper.response(ctx, -1, '请输入邀请码！');
+                return;
+                // ctx.throw(404, '请输入邀请码！');
             } else {
                 await service.inviteCode.verifyCode(params.code);
             }
@@ -165,7 +167,9 @@ class UserController extends Controller {
         const verifyPsw = await ctx.compare(params.password, res.password);
         //密码错误
         if(!verifyPsw) {
-            ctx.throw(404, '密码错误！');
+            ctx.helper.response(ctx, -1, '密码错误！');
+            return;
+            // ctx.throw(404, '密码错误！');
         }
         //设置响应
         const token = ctx.helper.generateJWT(params.mobile);

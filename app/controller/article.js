@@ -215,7 +215,9 @@ class ArticleController extends Controller {
             user = await service.user.findOneUser(mobile);
             article = await service.article.findOneArticle(id);
             if(user.nickname != article.author) {
-                ctx.throw(404, '这篇文章不是您写的，您没有权限修改！');
+                ctx.helper.response(ctx, 1, '这篇文章不是您写的，您没有权限修改！');
+                return;
+                // ctx.throw(404, '这篇文章不是您写的，您没有权限修改！');
             }
         }
     }

@@ -28,7 +28,9 @@ class ArticleService extends Service {
             }
         }
         if(!articles) {
-            ctx.throw(404, '找不到文章！');
+            ctx.helper.response(ctx, 3, '找不到文章！');
+            return;
+            // ctx.throw(404, '找不到文章！');
         }
         return articles;
     }
@@ -37,7 +39,9 @@ class ArticleService extends Service {
         const { ctx } = this;
         const article = await this._findTitle(params.title);
         if(article) {
-            ctx.throw(404, '文章已存在！');
+            ctx.helper.response(ctx, 4, '文章已存在！');
+            return;
+            // ctx.throw(404, '文章已存在！');
         }
         return this._create(params);
     }
@@ -46,7 +50,9 @@ class ArticleService extends Service {
         const { ctx } = this;
         const article = await this._find(id);
         if(!article) {
-            ctx.throw(404, '没有找到文章！');
+            ctx.helper.response(ctx, 3, '找不到文章！');
+            return;
+            // ctx.throw(404, '没有找到文章！');
         }
         return article;
     }
@@ -56,12 +62,16 @@ class ArticleService extends Service {
         //校验id
         let article = await this._find(id);
         if(!article) {
-            ctx.throw(404, '没有找到文章！');
+            ctx.helper.response(ctx, 3, '找不到文章！');
+            return;
+            // ctx.throw(404, '没有找到文章！');
         }
         //校验title
         article = await this._findTitle(params.title, id);
         if(article) {
-            ctx.throw(404, '文章标题已存在！');
+            ctx.helper.response(ctx, 4, '文章标题已存在！');
+            return;
+            // ctx.throw(404, '文章标题已存在！');
         }
         return this._update(id, params);
     }
@@ -70,7 +80,9 @@ class ArticleService extends Service {
         const { ctx } = this;
         const article = await this._find(id);
         if(!article) {
-            ctx.throw(404, '没有找到文章！');
+            ctx.helper.response(ctx, 3, '找不到文章！');
+            return;
+            // ctx.throw(404, '没有找到文章！');
         }
         return this._delete(id);
     }

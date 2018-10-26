@@ -24,11 +24,15 @@ class UserService extends Service {
         const { ctx } = this;
         const hasMobile = await this.verifyMobile(mobile);
         if(hasMobile) {
-            ctx.throw(404, '用户已存在！');
+            ctx.helper.response(ctx, 4, '用户已存在！');
+            return;
+            // ctx.throw(404, '用户已存在！');
         }
         const hasNickname = await this.verifyNickname(nickname);
         if(hasNickname) {
-            ctx.throw(404, '昵称已存在！');
+            ctx.helper.response(ctx, 4, '昵称已存在！');
+            return;
+            // ctx.throw(404, '昵称已存在！');
         }
         //验证管理员和超级管理员
         let authority = 'user';
@@ -52,7 +56,9 @@ class UserService extends Service {
         const { ctx } = this;
         const hasMobile = this.verifyMobile(mobile);
         if(!hasMobile) {
-            ctx.throw(404, '没有找到用户！');
+            ctx.helper.response(ctx, 3, '没有找到用户！');
+            return;
+            // ctx.throw(404, '没有找到用户！');
         }
         return this._delete(mobile);
     }
@@ -61,7 +67,9 @@ class UserService extends Service {
         const { ctx } = this;
         const hasMobile = this.verifyMobile(mobile);
         if(!hasMobile) {
-            ctx.throw(404, '没有找到用户！');
+            ctx.helper.response(ctx, 3, '没有找到用户！');
+            return;
+            // ctx.throw(404, '没有找到用户！');
         }
         password = await ctx.genHash(password);
         return this._updatePassword(mobile, password);
@@ -71,7 +79,9 @@ class UserService extends Service {
         const { ctx } = this;
         const user = await this._findMobile(mobile);
         if(!user) {
-            ctx.throw(404, '没有找到用户！');
+            ctx.helper.response(ctx, 3, '没有找到用户！');
+            return;
+            // ctx.throw(404, '没有找到用户！');
         }
         return user;
     }
@@ -80,7 +90,9 @@ class UserService extends Service {
         const { ctx } = this;
         const users = await this._findAll();
         if(!users) {
-            ctx.throw(404, '找不到用户！');
+            ctx.helper.response(ctx, 3, '没有找到用户！');
+            return;
+            // ctx.throw(404, '找不到用户！');
         }
         return users;
     }
@@ -89,7 +101,9 @@ class UserService extends Service {
       const { ctx } = this;
       const user = await this._findMobile(mobile);
       if(!user) {
-        ctx.throw(404, '权限查找出错！');
+        ctx.helper.response(ctx, 1, '没有权限！');
+        return;
+        // ctx.throw(404, '权限查找出错！');
       }
       return user.authority;
     }
@@ -100,7 +114,9 @@ class UserService extends Service {
       const query = { $set: { authority: 'admin', postTimes: 99999 }};
       const user = await ctx.model.User.findOneAndUpdate(condition, query);
       if(!user) {
-        ctx.throw(404, '没有这个用户！');
+        ctx.helper.response(ctx, 3, '没有找到用户！');
+        return;
+        // ctx.throw(404, '没有这个用户！');
       }
       return user;
     }
@@ -109,11 +125,15 @@ class UserService extends Service {
         const { ctx } = this;
         const hasMobile = this.verifyMobile(mobile);
         if(!hasMobile) {
-            ctx.throw(404, '没有找到用户！');
+            ctx.helper.response(ctx, 3, '没有找到用户！');
+            return;
+            // ctx.throw(404, '没有找到用户！');
         }
         const hasNickname = this.verifyNickname(nickname);
         if(!hasNickname) {
-            ctx.throw(404, '昵称已存在！');
+            ctx.helper.response(ctx, 4, '昵称已存在！');
+            return;
+            // ctx.throw(404, '昵称已存在！');
         }
         return this._updateNickname(mobile, nickname);
     }
